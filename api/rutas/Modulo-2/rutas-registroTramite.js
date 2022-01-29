@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express()
-const mysqlConection = require('../conexion/conexionBD');
+const mysqlConection = require('../../conexion/conexionBD');
 const jwt = require('jsonwebtoken');
 const { json } = require('express');
 
