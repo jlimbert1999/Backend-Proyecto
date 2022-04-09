@@ -5,7 +5,6 @@ const jwt = require('jsonwebtoken');
 
 app.post('/cargo', (req, res) => {
     const body = req.body
-    console.log(body);
     let consulta = 'INSERT INTO cargo set ?';
     mysqlConection.query(consulta, body, (err, cargoDB, fields) => {
         if (err) {
@@ -41,7 +40,7 @@ app.get('/cargos/:tipo', (req, res) => {
         }
         res.json({
             ok: true,
-            cargo: cargoDB,
+            Cargos: cargoDB,
             message: "Se obtuvieron los cargos registrados"
         })
     })

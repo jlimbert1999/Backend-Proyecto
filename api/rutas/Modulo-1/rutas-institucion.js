@@ -2,10 +2,10 @@ const express = require('express');
 const app = express()
 const mysqlConection = require('../../conexion/conexionBD');
 const jwt = require('jsonwebtoken');
+const { verificarToken, verificarAdminRol } = require('../../middleware/autorizacion')
 
-app.post('/institucion', (req, res) => {
+app.post('/institucion', verificarToken, verificarAdminRol, (req, res) => {
     const body = req.body
-    console.log(body);
     let consulta = 'INSERT INTO institucion set ?';
     mysqlConection.query(consulta, body, (err, institucionDB, fields) => {
         if (err) {
@@ -35,14 +35,14 @@ app.get('/instituciones/:tipo', (req, res) => {
         }
         if (institucionDB <= 0) {
             return res.json({
-                ok: false,
+                ok: true,
+                Instituciones: [],
                 message: 'No hay instituciones registradas'
             })
         }
         res.json({
             ok: true,
-            Instituciones: institucionDB,
-            message: "Se obtuvieron las instituciones"
+            Instituciones: institucionDB
         })
     })
 })

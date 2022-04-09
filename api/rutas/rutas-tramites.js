@@ -77,7 +77,6 @@ app.put('/tramite/:id', (req, res) => {
 
 app.delete('/tramite/:id', (req, res) => {
     const id = req.params.id
-    console.log(id)
     let consulta = "delete from tipo_tramites where id_tipoTramte=?";
     mysqlConection.query(consulta, id, (err, tipoTramiteDB, fields) => {
         if (err) {

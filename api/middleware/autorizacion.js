@@ -15,8 +15,22 @@ let verificarToken = (req, res, next) => {
         req.usuario = decoded;
         next()
     })
+}
+let verificarAdminRol = (req, res, next) => {
+    let usuario = req.usuario
+    if (usuario.Tipo == "ADMIN_ROLE") {
+        next()
+    } else {
+        res.status(400).json({
+            of: false,
+            err: {
+                message: "el user no es admin"
+            }
+        })
 
+    }
 }
 module.exports = {
-    verificarToken
+    verificarToken,
+    verificarAdminRol
 }

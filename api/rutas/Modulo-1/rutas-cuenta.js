@@ -67,8 +67,8 @@ app.get('/cuentas-asignadas', (req, res) => {
         }
         if (cuentasDB <= 0) {
             return res.json({
-                ok: false,
-                message: "No hay cuentas asignadas a funcionarios"
+                ok: true,
+                Cuentas: []
             })
         }
         res.json({
@@ -90,8 +90,8 @@ app.get('/cuentas-no_asignadas', (req, res) => {
         }
         if (cuentasDB <= 0) {
             return res.json({
-                ok: false,
-                message: "No hay cuentas sin asignar"
+                ok: true,
+                Cuentas: []
             })
         }
         res.json({

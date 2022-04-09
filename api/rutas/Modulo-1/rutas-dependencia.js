@@ -5,7 +5,6 @@ const jwt = require('jsonwebtoken');
 
 app.post('/dependencia', (req, res) => {
     const body = req.body
-    console.log(body);
     let consulta = 'INSERT INTO dependencia set ?';
     mysqlConection.query(consulta, body, (err, dependenciaDB, fields) => {
         if (err) {
@@ -35,7 +34,8 @@ app.get('/dependencias/:tipo', (req, res) => {
         }
         if (dependenciaDB <= 0) {
             return res.json({
-                ok: false,
+                ok: true,
+                Dependencias: [],
                 message: 'No hay dependencias registrados'
             })
         }
@@ -68,8 +68,7 @@ app.put('/dependencias/:id', (req, res) => {
 
 app.delete('/dependencia/:id', (req, res) => {
     const id = req.params.id
-    console.log(id);
-    // DELETE FROM `pruebabd`.`dependencia` WHERE (`id_dependencia` = '3');
+        // DELETE FROM `pruebabd`.`dependencia` WHERE (`id_dependencia` = '3');
     let consulta = 'DELETE from dependencia where id_dependencia=?';
     mysqlConection.query(consulta, id, (err, dependenciaDB, fields) => {
         if (err) {
@@ -82,6 +81,30 @@ app.delete('/dependencia/:id', (req, res) => {
             ok: true,
             message: "Dependencia eliminada",
             usr: dependenciaDB
+        })
+    })
+})
+
+//obtener las dependencias de una institucion
+app.get('/dependencias-instituto/:id', (req, res) => {
+    let id_institucion = req.params.id
+    let consulta = 'SELECT Nombre, id_dependencia from dependencia where id_institucion=? and activo=true';
+    mysqlConection.query(consulta, id_institucion, (err, dependenciaDB, fields) => {
+        if (err) {
+            return res.status(400).json({
+                ok: false,
+                err
+            })
+        }
+        if (dependenciaDB <= 0) {
+            return res.json({
+                ok: false,
+                message: 'No hay dependencias registrados'
+            })
+        }
+        res.json({
+            ok: true,
+            Dependencias: dependenciaDB
         })
     })
 })

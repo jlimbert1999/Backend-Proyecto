@@ -21,10 +21,34 @@ app.post('/requerimientos', (req, res) => {
     })
 })
 
-//get requerimietos de tramite
-app.get('/requerimientos/:id', (req, res) => {
+//get requerimietos de tramite habilitados
+app.get('/requerimientos_Habilitados/:id', (req, res) => {
     let id = req.params.id
-    let consulta = 'SELECT * from requerimientos where id_TipoTramite=?';
+    let consulta = 'SELECT * from requerimientos where id_TipoTramite=? and Activo=true';
+    mysqlConection.query(consulta, id, (err, requerimientosDB, fields) => {
+        if (err) {
+            return res.status(400).json({
+                ok: false,
+                err
+            })
+        }
+        if (requerimientosDB <= 0) {
+            return res.json({
+                ok: true,
+                Requerimientos: [],
+                message: 'No hay requerimientos registrados'
+            })
+        }
+        res.json({
+            ok: true,
+            Requerimientos: requerimientosDB,
+            message: "Se obtuvieron los requerimientos"
+        })
+    })
+})
+app.get('/requerimientos_noHabilitados/:id', (req, res) => {
+    let id = req.params.id
+    let consulta = 'SELECT * from requerimientos where id_TipoTramite=? and Activo=false';
     mysqlConection.query(consulta, id, (err, requerimientosDB, fields) => {
         if (err) {
             return res.status(400).json({

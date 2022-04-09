@@ -3,14 +3,13 @@ const app = express()
 const mysqlConection = require('../../conexion/conexionBD');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const { verificarToken } = require('../../middleware/autorizacion')
+const { verificarToken, verificarAdminRol } = require('../../middleware/autorizacion')
 
 
 //INICIO DE SESION
 app.post('/login', (req, res) => {
     let { login, password } = req.body
-    console.log(req.body);
-    let consulta = 'select password, id_funcionario, id_cargo from cuenta where login=?'
+    let consulta = 'select t1.password, t1.id_funcionario, t1.id_cuenta, t1.login, t2.Nombre as NombreCargo, t3.Nombre, t3.Apellido_P, t3.Apellido_M, t4.tipo from cuenta as t1 join cargo as t2 on t2.id_cargo=t1.id_cargo join funcionarios as t3 on t3.id_funcionario=t1.id_funcionario join permisos as t4 on t4.id_cuenta=t1.id_cuenta where t1.login=?'
     mysqlConection.query(consulta, login, (err, usuarioDB, fields) => {
         if (err) {
             return res.status(400).json({
@@ -31,33 +30,28 @@ app.post('/login', (req, res) => {
                 message: 'la contraseña es incorrecta'
             })
         }
-        let datosUsuario = {
-            id_cargo: usuarioDB[0].id_cargo,
+        let DatosCuenta = {
+            id_cuenta: usuarioDB[0].id_cuenta,
             id_funcionario: usuarioDB[0].id_funcionario,
-            NombreUser: login
+            Nombre: `${usuarioDB[0].Nombre} ${usuarioDB[0].Apellido_P} ${usuarioDB[0].Apellido_M}`,
+            NombreLogin: usuarioDB[0].login,
+            NombreCargo: usuarioDB[0].NombreCargo,
+            Tipo: usuarioDB[0].tipo
         }
-        let token = jwt.sign(datosUsuario, 'still')
+        let token = jwt.sign(DatosCuenta, 'still')
         res.json({
             ok: true,
-            usuario: datosUsuario,
+            usuario: DatosCuenta,
             token
         })
     })
-})
-
-app.get('/test', verificarToken, (req, res) => {
-    return res.json({
-        usuarios: req.usuario
-    })
-
-
 })
 
 
 //==================ADMINISTRACION DE USUARIOS===========================
 
 //AGREGAR USUARIO
-app.post('/usuarios', (req, res) => {
+app.post('/usuarios', verificarToken, verificarAdminRol, (req, res) => {
     const body = req.body
     let consulta = 'INSERT INTO funcionarios set ?';
     mysqlConection.query(consulta, body, (err, usuarioDB, fields) => {
@@ -89,8 +83,8 @@ app.get('/usuarios/:tipo', (req, res) => {
         }
         if (usuariosDB <= 0) {
             return res.json({
-                ok: false,
-                message: 'No hay usuarios registrados'
+                ok: true,
+                usuarios: []
             })
         }
 
@@ -99,7 +93,6 @@ app.get('/usuarios/:tipo', (req, res) => {
             usuarios: usuariosDB,
             message: "Se obtuvieron a los funcionarios"
         })
-        console.log(usuariosDB);
     })
 })
 
@@ -132,7 +125,6 @@ app.get('/usuarios/:id', (req, res) => {
 //get multiple usuarios
 app.post('/usuarios-trabajando', (req, res) => {
     const ids = req.body.ids
-    console.log(ids);
     let consulta = 'Select * from funcionarios where id_funcionario in (?)';
     mysqlConection.query(consulta, [ids], (err, usuariosDB, fields) => {
 
@@ -246,6 +238,26 @@ app.get('/usuarios-detalles', (req, res) => {
             ok: true,
             Detalles: detallesDB,
             message: "Se obtuvieron los detalles"
+        })
+    })
+})
+
+
+//obtner info completa cuenta
+app.get('/detalles-cuenta/:id', (req, res) => {
+    const id = req.params.id
+    let consulta = 'SELECT t1.*, t2.Nombre as NombreCargo, t3.Nombre as NombreDep, t4.Nombre as NombreInst, t5.login from cuenta as t5 join funcionarios as t1 on t1.id_funcionario=t5.id_funcionario join trabaja as t6 on t6.id_cuenta=t5.id_cuenta join cargo as t2 on t2.id_cargo=t5.id_cargo join dependencia as t3 on t3.id_dependencia=t6.id_dependencia join institucion as t4 on t4.id_institucion=t6.id_institucion where t5.id_cuenta=?';
+    mysqlConection.query(consulta, id, (err, detallesDB, fields) => {
+        if (err) {
+            return res.status(400).json({
+                ok: false,
+                err
+            })
+        }
+        res.json({
+            ok: true,
+            Detalles: detallesDB,
+            message: "Se obtuvieron los detalles de la cuenta"
         })
     })
 })
