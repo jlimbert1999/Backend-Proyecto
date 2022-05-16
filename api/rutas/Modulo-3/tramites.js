@@ -26,7 +26,8 @@ app.post('/tramite', (req, res) => {
 //obtener info tramite registrados por una cuenta
 app.get('/tramites/:id', (req, res) => {
     let id = req.params.id
-    let consulta = 'Select t1.*, t2.id_solicitud,t3.*, t4.titulo from tramite as t1 join solicitud as t2 on t2.id_tramite=t1.id_tramite join solicitante as t3 on t3.id_solicitante=t2.id_solicitante join tipos as t4 on t4.id_TipoTramite=t1.id_TipoTramite where t1.id_cuenta=?';
+    let consulta = 'Select DISTINCT t1.*, t3.nombres, paterno, t3.materno, t2.id_solicitud, t2.id_solicitante, t2.id_representante, t4.titulo, IF(t5.id_tramite is null, true, false) from tramite as t1 join solicitud as t2 on t2.id_tramite=t1.id_tramite join solicitante as t3 on t3.id_solicitante=t2.id_solicitante join tipos as t4 on t4.id_TipoTramite=t1.id_TipoTramite left join bandeja_salida as t5 on t5.id_tramite=t1.id_tramite where t1.id_cuenta=? ORDER BY Fecha_creacion DESC;';
+    // let consulta = 'Select t1.*, t2.id_solicitud, t3.*, t4.titulo, t5.enviado from tramite as t1 join solicitud as t2 on t2.id_tramite=t1.id_tramite join solicitante as t3 on t3.id_solicitante=t2.id_solicitante join tipos as t4 on t4.id_TipoTramite=t1.id_TipoTramite left join workflow as t5 on t5.id_tramite=t1.id_tramite where t1.id_cuenta=? and t5.enviado is NULL';
     mysqlConection.query(consulta, id, (err, tramitesDb, fields) => {
         if (err) {
             return res.status(400).json({
@@ -63,7 +64,6 @@ app.put('/tramite/:id', (req, res) => {
 })
 
 //SOLICITANTE
-
 app.post('/solicitante', (req, res) => {
     const body = req.body
     let consulta = 'INSERT INTO solicitante set ?';
@@ -325,54 +325,9 @@ app.get('/ficha-requisitos_presentados/:id', (req, res) => {
 
 
 
-//metodo para conseguir algunos detalles del tramite y mostrarlos en las bandejas como lista
-app.get('/bandeja-recibida/:id', (req, res) => {
-    let id = req.params.id
-    let consulta = 'Select t1.id_tramite, t1.detalle, t1.fecha_envio, t1.enviado, t1.recibido, t1.id_cuentaEmisor, t2.alterno, t3.titulo, t4.Nombre, t4.Apellido_P, t4.Apellido_M, t6.Nombre as NombreCargo from workflow as t1 join tramite as t2 on t2.id_tramite=t1.id_tramite join tipos as t3 on t3.id_TipoTramite=t2.id_TipoTramite join cuenta as t5 on t5.id_cuenta=t1.id_cuentaEmisor join  cargo as t6 on t6.id_cargo=t5.id_cargo join funcionarios as t4 on t4.id_funcionario=t5.id_funcionario where t1.id_cuentaReceptor=?';
-    mysqlConection.query(consulta, id, (err, tramitesDb, fields) => {
-        if (err) {
-            return res.status(400).json({
-                ok: false,
-                message: err
-            })
-        }
-        if (tramitesDb.length == 0) {
-            return res.json({
-                ok: true,
-                Tramites_Recibidos: [],
-                message: 'Esta cuenta no tiene tramites recibidos'
-            })
-
-        }
-        res.json({
-            ok: true,
-            Tramites_Recibidos: tramitesDb,
-        })
-
-    })
-})
-
-app.get('/bandeja-emitida/:id', (req, res) => {
-    let id = req.params.id
-    let consulta = 'Select t1.*, t2.alterno, t2.cantidad, t3.titulo, t5.Nombre, t5.Apellido_P, t5.Apellido_M, t6.Nombre as NombreCargo from workflow as t1 join tramite as t2 on t2.id_tramite=t1.id_tramite join tipos as t3 on t3.id_TipoTramite=t2.id_TipoTramite join cuenta as t4 on t4.id_cuenta=t1.id_cuentaReceptor join funcionarios as t5 on t5.id_funcionario=t4.id_funcionario join cargo as t6 on t6.id_cargo=t4.id_cargo where t1.id_cuentaEmisor=?';
-    mysqlConection.query(consulta, id, (err, tramiteDb, fields) => {
-        if (err) {
-            return res.status(400).json({
-                ok: false,
-                message: err
-            })
-        }
-        res.json({
-            ok: true,
-            Tramites: tramiteDb
-        })
-
-    })
-})
-
 app.get('/detalles-funcionario/:id', (req, res) => {
     let id = req.params.id
-    let consulta = 'Select t1.id_cuenta, t2.Nombre, t2.Apellido_P, t2.Apellido_M, t3.Nombre as NombreCar, t4.Nombre as NombreInst, t5.Nombre as NombreDep from cuenta as t1 join funcionarios as t2 on t2.id_funcionario=t1.id_funcionario join cargo as t3 on t3.id_cargo=t1.id_cargo join trabaja as tx on tx.id_cuenta=t1.id_cuenta join institucion as t4 on t4.id_institucion=tx.id_institucion join dependencia as t5 on tx.id_dependencia=t5.id_dependencia where t1.id_cuenta=?';
+    let consulta = 'Select t1.id_cuenta, t2.Nombre, t2.Apellido_P, t2.Apellido_M, t3.Nombre as NombreCar, t4.Nombre as NombreInst, t4.Sigla, t5.Nombre as NombreDep from cuenta as t1 join funcionarios as t2 on t2.id_funcionario=t1.id_funcionario join cargo as t3 on t3.id_cargo=t1.id_cargo join trabaja as tx on tx.id_cuenta=t1.id_cuenta join institucion as t4 on t4.id_institucion=tx.id_institucion join dependencia as t5 on tx.id_dependencia=t5.id_dependencia where t1.id_cuenta=?';
     mysqlConection.query(consulta, id, (err, funcionarioDb, fields) => {
         if (err) {
             return res.status(400).json({
@@ -607,30 +562,38 @@ app.get('/requisitos_presentados/:id', (req, res) => {
 
 module.exports = app
 
-
-//get tramites registrados por una funcionario
-// app.get('/tramites/:id', (req, res) => {
+// METODOS ANTIGUOS PARA BANDEJA 
+//metodo para conseguir algunos detalles del tramite y mostrarlos en las bandejas como lista
+// app.get('/bandeja-recibida/:id', (req, res) => {
 //     let id = req.params.id
-//     let consulta = 'Select t2.*,  t3.titulo, t4.nombres, t4.paterno, t4.materno from solicitud as t1 join tramite as t2 on t2.id_tramite=t1.id_tramite join tipos as t3 on t3.id_TipoTramite=t2.id_TipoTramite join solicitante as t4 on t4.id_solicitante=t1.id_solicitante where t2.id_cuenta=?';
-//     mysqlConection.query(consulta, id, (err, tramitesDb, fields) => {
+//     let consulta = 'Select t1.id_tramite, t1.detalle, t1.fecha_envio, t1.enviado, t1.recibido, t1.id_cuentaEmisor, t2.alterno, t3.titulo, t4.Nombre, t4.Apellido_P, t4.Apellido_M, t6.Nombre as NombreCargo from workflow as t1 join tramite as t2 on t2.id_tramite=t1.id_tramite join tipos as t3 on t3.id_TipoTramite=t2.id_TipoTramite join cuenta as t5 on t5.id_cuenta=t1.id_cuentaEmisor join  cargo as t6 on t6.id_cargo=t5.id_cargo join funcionarios as t4 on t4.id_funcionario=t5.id_funcionario where t1.id_cuentaReceptor=? AND t1.id_tramite not in (Select id_tramite from workflow where id_cuentaEmisor=?)';
+//     mysqlConection.query(consulta, [id, id], (err, tramitesDb, fields) => {
 //         if (err) {
 //             return res.status(400).json({
 //                 ok: false,
 //                 message: err
 //             })
 //         }
+//         if (tramitesDb.length == 0) {
+//             return res.json({
+//                 ok: true,
+//                 Tramites_Recibidos: [],
+//                 message: 'Esta cuenta no tiene tramites recibidos'
+//             })
+
+//         }
 //         res.json({
 //             ok: true,
-//             Tramites: tramitesDb
+//             Tramites_Recibidos: tramitesDb,
 //         })
 
 //     })
 // })
 
-// app.get('/solicitantes/:id', (req, res) => {
+// app.get('/bandeja-emitida/:id', (req, res) => {
 //     let id = req.params.id
-//     let consulta = 'Select t1.* from solicitante as t1 join solicitud as t2 on t2.id_solicitante=t1.id_solicitante join tramite as t3 on t3.id_tramite=t2.id_tramite where t3.id_cuenta=?';
-//     mysqlConection.query(consulta, id, (err, solicitanteDb, fields) => {
+//     let consulta = 'Select t1.*, t2.alterno, t2.cantidad, t3.titulo, t5.Nombre, t5.Apellido_P, t5.Apellido_M, t6.Nombre as NombreCargo from workflow as t1 join tramite as t2 on t2.id_tramite=t1.id_tramite join tipos as t3 on t3.id_TipoTramite=t2.id_TipoTramite join cuenta as t4 on t4.id_cuenta=t1.id_cuentaReceptor join funcionarios as t5 on t5.id_funcionario=t4.id_funcionario join cargo as t6 on t6.id_cargo=t4.id_cargo where t1.id_cuentaEmisor=?';
+//     mysqlConection.query(consulta, id, (err, tramiteDb, fields) => {
 //         if (err) {
 //             return res.status(400).json({
 //                 ok: false,
@@ -639,25 +602,7 @@ module.exports = app
 //         }
 //         res.json({
 //             ok: true,
-//             Solicitantes: solicitanteDb
-//         })
-
-//     })
-// })
-
-// app.get('/representantes/:id', (req, res) => {
-//     let id = req.params.id
-//     let consulta = 'Select t1.* from representante as t1 join solicitud as t2 on t2.id_representante=t1.id_representante join tramite as t3 on t3.id_tramite=t2.id_tramite where t3.id_cuenta=?';
-//     mysqlConection.query(consulta, id, (err, representanteDb, fields) => {
-//         if (err) {
-//             return res.status(400).json({
-//                 ok: false,
-//                 message: err
-//             })
-//         }
-//         res.json({
-//             ok: true,
-//             Representantes: representanteDb
+//             Tramites: tramiteDb
 //         })
 
 //     })
