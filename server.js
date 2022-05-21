@@ -11,6 +11,8 @@ const { Usuarios } = require('./api/class/usuarios');
 const usuarios = new Usuarios
 
 
+
+
 //Servicio colaborativo
 socketIO.on('connection', (client) => {
     client.on('unirse', (infoUser, callback) => {
@@ -47,6 +49,7 @@ socketIO.on('connection', (client) => {
         client.broadcast.to(id_receptor).emit('recibirTramite', Tramite) //to para envviar a user especifico
     })
 })
+
 
 const port = process.env.PORT || 3000;
 server.listen(port, () => {
