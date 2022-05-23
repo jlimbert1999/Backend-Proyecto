@@ -58,7 +58,7 @@ app.get('/reporte_solicitante', (req, res) => {
 
 app.post('/reporte_fichaTramite', (req, res) => {
     let { alterno, dni } = req.body
-    let consulta = 'Select t1.id_tramite, t1.id_representante, t5.titulo from solicitud as t1 join tramite as t2 on t2.id_tramite=t1.id_tramite join solicitante as t3 on t3.id_solicitante=t1.id_solicitante left join representante as t4 on t4.id_representante=t1.id_representante join tipos as t5 on t5.id_TipoTramite=t2.id_TipoTramite where t2.alterno=? and t3.dni=?';
+    let consulta = 'Select t1.id_tramite, t1.id_representante, t5.titulo from solicitud as t1 join tramite as t2 on t2.id_tramite=t1.id_tramite join solicitante as t3 on t3.id_solicitante=t1.id_solicitante left join representante as t4 on t4.id_representante=t1.id_representante join tipos as t5 on t5.id_TipoTramite=t2.id_TipoTramite where t2.alterno=? or t3.dni=?';
     mysqlConection.query(consulta, [alterno, dni], (err, reporteDb, fields) => {
         if (err) {
             return res.status(400).json({

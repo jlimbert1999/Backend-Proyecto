@@ -17,7 +17,7 @@ app.use(express.static(path.join(__dirname, 'frontend')));
 app.use(rutas)
 
 //REDIRECCIONAR AL INDEX DEL FRONTEND
-app.get('/*', (req, res) => { res.sendFile(path.join(__dirname)) })
+app.get('/*', (req, res) => { res.sendFile(path.join(__dirname + '/frontend/index.html')) })
 
 
 module.exports = app;
