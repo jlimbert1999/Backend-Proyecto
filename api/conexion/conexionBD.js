@@ -3,7 +3,7 @@ const mysqlConection = mysql.createConnection({
     host: 'us-cdbr-east-05.cleardb.net',
     user: 'bf0c5a31b08c6c',
     password: 'f53e2b4b',
-    database: 'heroku_dc70b0c55510019?reconnect=true',
+    database: 'heroku_dc70b0c55510019',
     port: '3306'
 })
 
