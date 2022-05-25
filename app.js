@@ -11,13 +11,13 @@ app.use(express.urlencoded({ extended: true }))
 app.use(cors());
 
 // CONEXION CON EL FRONTEND
-app.use(express.static(path.join(__dirname, 'frontend')));
+app.use(express.static(path.join(__dirname, 'dist/frontend')));
 
 //RUTAS
 app.use(rutas)
 
 //REDIRECCIONAR AL INDEX DEL FRONTEND
-app.get('/*', (req, res) => { res.sendFile(path.join(__dirname + '/frontend/index.html')) })
+app.all('/*', (req, res) => { res.sendFile(path.join(__dirname + '/frontend/index.html')) })
 
 
 module.exports = app;

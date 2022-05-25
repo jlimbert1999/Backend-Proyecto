@@ -297,6 +297,7 @@ app.get('/ficha-representante/:id', (req, res) => {
 })
 app.get('/ficha-requisitos_presentados/:id', (req, res) => {
     let id = req.params.id
+    console.log(id);
     let consulta = 'Select presento from solicitud where id_tramite=?';
     let consulta2 = `Select detalle from requerimientos where id_requerimiento in (?)`;
     mysqlConection.query(consulta, id, (err, idsDb, fields) => {
@@ -306,19 +307,23 @@ app.get('/ficha-requisitos_presentados/:id', (req, res) => {
                 message: err
             })
         }
-        let ids_requerimientos = idsDb[0].presento.split(',').map(Number);
-        mysqlConection.query(consulta2, [ids_requerimientos], (err, requisitosDb, fields) => {
-            if (err) {
-                return res.status(400).json({
-                    ok: false,
-                    message: err
+        if (idsDb[0]) {
+            let ids_requerimientos = idsDb[0].presento.split(',').map(Number);
+            mysqlConection.query(consulta2, [ids_requerimientos], (err, requisitosDb, fields) => {
+                if (err) {
+                    return res.status(400).json({
+                        ok: false,
+                        message: err
+                    })
+                }
+                res.json({
+                    ok: true,
+                    Requerimientos: requisitosDb
                 })
-            }
-            res.json({
-                ok: true,
-                Requerimientos: requisitosDb
             })
-        })
+        }
+
+
     })
 })
 
