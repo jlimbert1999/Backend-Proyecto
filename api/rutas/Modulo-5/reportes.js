@@ -73,6 +73,23 @@ app.post('/reporte_fichaTramite', (req, res) => {
 
     })
 })
+app.post('/reporte_estado', (req, res) => {
+    let { estado } = req.body
+    let consulta = 'Select t1.Fecha_creacion, t1.alterno, t1.estado, t2.id_TipoTramite, t2.titulo from tramite as t1 join tipos as t2 on t2.id_TipoTramite=t1.id_TipoTramite where t1.estado=?';
+    mysqlConection.query(consulta, estado, (err, tramitesDb, fields) => {
+        if (err) {
+            return res.status(400).json({
+                ok: false,
+                message: err
+            })
+        }
+        res.json({
+            ok: true,
+            Tramites: tramitesDb
+        })
+
+    })
+})
 
 
 module.exports = app

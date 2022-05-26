@@ -26,7 +26,7 @@ app.post('/tramite', (req, res) => {
 //obtener info tramite registrados por una cuenta
 app.get('/tramites/:id', (req, res) => {
     let id = req.params.id
-    let consulta = 'Select DISTINCT t1.*, t3.nombres, paterno, t3.materno, t2.id_solicitud, t2.id_solicitante, t2.id_representante, t4.titulo, IF(t5.id_tramite is null, true, false) from tramite as t1 join solicitud as t2 on t2.id_tramite=t1.id_tramite join solicitante as t3 on t3.id_solicitante=t2.id_solicitante join tipos as t4 on t4.id_TipoTramite=t1.id_TipoTramite left join bandeja_salida as t5 on t5.id_tramite=t1.id_tramite where t1.id_cuenta=? ORDER BY Fecha_creacion DESC;';
+    let consulta = 'Select DISTINCT t1.*, t3.nombres, t3.paterno, t3.materno, t3.dni, t3.expedido, t2.id_solicitud, t2.id_solicitante, t2.id_representante, t4.titulo, IF(t5.id_tramite is null, true, false) from tramite as t1 join solicitud as t2 on t2.id_tramite=t1.id_tramite join solicitante as t3 on t3.id_solicitante=t2.id_solicitante join tipos as t4 on t4.id_TipoTramite=t1.id_TipoTramite left join bandeja_salida as t5 on t5.id_tramite=t1.id_tramite where t1.id_cuenta=? ORDER BY Fecha_creacion DESC;';
     // let consulta = 'Select t1.*, t2.id_solicitud, t3.*, t4.titulo, t5.enviado from tramite as t1 join solicitud as t2 on t2.id_tramite=t1.id_tramite join solicitante as t3 on t3.id_solicitante=t2.id_solicitante join tipos as t4 on t4.id_TipoTramite=t1.id_TipoTramite left join workflow as t5 on t5.id_tramite=t1.id_tramite where t1.id_cuenta=? and t5.enviado is NULL';
     mysqlConection.query(consulta, id, (err, tramitesDb, fields) => {
         if (err) {
@@ -370,7 +370,7 @@ app.post('/observacion', (req, res) => {
 
 app.get('/observaciones/:id', (req, res) => {
     let id = req.params.id
-    let consulta = 'select t1.*, t3.Nombre, t3.Apellido_P, t3.Apellido_M, t4.Nombre as NombreCar from observacion as t1 join cuenta as t2 on t2.id_cuenta=t1.id_cuenta join funcionarios as t3 on t3.id_funcionario=t2.id_funcionario join cargo as t4 on t4.id_cargo=t2.id_cargo where t1.id_tramite=?';
+    let consulta = 'select t1.*, t3.Nombre, t3.Apellido_P, t3.Apellido_M, t4.Nombre as NombreCar, t6.Nombre as NombreDep from observacion as t1 join cuenta as t2 on t2.id_cuenta=t1.id_cuenta join funcionarios as t3 on t3.id_funcionario=t2.id_funcionario join cargo as t4 on t4.id_cargo=t2.id_cargo join trabaja as t5 on t5.id_cuenta=t2.id_cuenta join dependencia as t6 on t6.id_dependencia=t5.id_dependencia where t1.id_tramite=?';
     mysqlConection.query(consulta, id, (err, observacionDb, fields) => {
         if (err) {
             return res.status(400).json({

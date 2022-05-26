@@ -11,7 +11,8 @@ app.use(express.urlencoded({ extended: true }))
 app.use(cors());
 
 // CONEXION CON EL FRONTEND
-app.use(express.static(path.join(__dirname, 'dist/frontend')));
+app.use(express.static(path.join(__dirname, 'frontend')));
+
 
 //RUTAS
 app.use(rutas)
