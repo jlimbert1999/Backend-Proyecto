@@ -302,7 +302,7 @@ app.get('/cuentas', (req, res) => {
                         }
                     })
                 });
-                console.log(DatosCuenta);
+
             })
 
 

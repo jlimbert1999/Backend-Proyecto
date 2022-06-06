@@ -24,7 +24,7 @@ app.post('/tramite', (req, res) => {
 
 
 //obtener info tramite registrados por una cuenta
-app.get('/tramites/:id', (req, res) => {
+app.get('/api/tramites/:id', (req, res) => {
     let id = req.params.id
     let consulta = 'Select DISTINCT t1.*, t3.nombres, t3.paterno, t3.materno, t3.dni, t3.expedido, t2.id_solicitud, t2.id_solicitante, t2.id_representante, t4.titulo, IF(t5.id_tramite is null, true, false) from tramite as t1 join solicitud as t2 on t2.id_tramite=t1.id_tramite join solicitante as t3 on t3.id_solicitante=t2.id_solicitante join tipos as t4 on t4.id_TipoTramite=t1.id_TipoTramite left join bandeja_salida as t5 on t5.id_tramite=t1.id_tramite where t1.id_cuenta=? ORDER BY Fecha_creacion DESC;';
     // let consulta = 'Select t1.*, t2.id_solicitud, t3.*, t4.titulo, t5.enviado from tramite as t1 join solicitud as t2 on t2.id_tramite=t1.id_tramite join solicitante as t3 on t3.id_solicitante=t2.id_solicitante join tipos as t4 on t4.id_TipoTramite=t1.id_TipoTramite left join workflow as t5 on t5.id_tramite=t1.id_tramite where t1.id_cuenta=? and t5.enviado is NULL';
@@ -297,7 +297,6 @@ app.get('/ficha-representante/:id', (req, res) => {
 })
 app.get('/ficha-requisitos_presentados/:id', (req, res) => {
     let id = req.params.id
-    console.log(id);
     let consulta = 'Select presento from solicitud where id_tramite=?';
     let consulta2 = `Select detalle from requerimientos where id_requerimiento in (?)`;
     mysqlConection.query(consulta, id, (err, idsDb, fields) => {
@@ -505,10 +504,9 @@ app.put('/workflow-aceptarTramite/:id', (req, res) => {
 })
 
 //metodo para obtener funcionarios de una insitucion y area especifos para el envio de tramite
-app.post('/funcionarios_especificos', (req, res) => {
-
-    let id_institucion = req.body.id_institucion
-    let id_dependencia = req.body.id_dependencia
+app.get('/api/funcionarios_especificos', (req, res) => {
+    let id_institucion = req.query.insti
+    let id_dependencia = req.query.dep
     let consulta = 'Select t1.Nombre,t1.Apellido_P, t1.Apellido_M, t2.id_cuenta, t4.Nombre as NombreCar from trabaja as t3 join cuenta as t2 on t2.id_cuenta=t3.id_cuenta join funcionarios as t1 on t1.id_funcionario=t2.id_funcionario join cargo as t4 on t4.id_cargo=t2.id_cargo where id_institucion=? and id_dependencia=?';
     mysqlConection.query(consulta, [id_institucion, id_dependencia], (err, funcionariosDb, fields) => {
         if (err) {
@@ -521,7 +519,6 @@ app.post('/funcionarios_especificos', (req, res) => {
             ok: true,
             Funcionarios: funcionariosDb,
         })
-
     })
 })
 

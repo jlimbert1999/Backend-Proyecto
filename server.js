@@ -11,8 +11,6 @@ const { Usuarios } = require('./api/class/usuarios');
 const usuarios = new Usuarios
 
 
-
-
 //Servicio colaborativo
 socketIO.on('connection', (client) => {
     client.on('unirse', (infoUser, callback) => {
@@ -23,30 +21,27 @@ socketIO.on('connection', (client) => {
             })
         }
         usuarios.agregarPersona(client.id, infoUser.id_cuenta, infoUser.Nombre, infoUser.NombreCargo) //client.id es unico de los sockets
-            // client.broadcast.emit('listar', usuarios.getPersonas())
+        client.broadcast.emit('listar', usuarios.getPersonas())
         callback(usuarios.getPersonas())
-        console.log("Se unio", infoUser.Nombre);
+
     })
 
     client.on('getUsers_Activos', (infoUser, callback) => {
         callback(usuarios.getPersonas())
     })
-
-    client.on('disconnect', () => {
-        let personaBorrada = usuarios.deletePersona(client.id)
-        console.log("salio", personaBorrada);
-        client.broadcast.emit('listar', usuarios.getPersonas())
-    })
-
     client.on('eliminarUser', (id) => {
         usuarios.quitarUser(id)
+        client.broadcast.emit('listar', usuarios.getPersonas())
     })
-
 
     client.on('enviarTramite', (data) => {
         let id_receptor = data.id_receptor
         let Tramite = data.Tramite
         client.broadcast.to(id_receptor).emit('recibirTramite', Tramite) //to para envviar a user especifico
+    })
+    client.on('disconnect', () => {
+        let personaBorrada = usuarios.deletePersona(client.id)
+        client.broadcast.emit('listar', usuarios.getPersonas())
     })
 })
 
