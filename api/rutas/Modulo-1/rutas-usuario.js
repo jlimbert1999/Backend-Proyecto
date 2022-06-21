@@ -52,7 +52,7 @@ app.post('/login', (req, res) => {
 //==================ADMINISTRACION DE USUARIOS===========================
 
 //AGREGAR USUARIO
-app.post('/usuarios', verificarToken, verificarAdminRol, (req, res) => {
+app.post('/api/usuario', verificarToken, verificarAdminRol, (req, res) => {
     const body = req.body
     let consulta = 'INSERT INTO funcionarios set ?';
     mysqlConection.query(consulta, body, (err, usuarioDB, fields) => {
@@ -64,7 +64,7 @@ app.post('/usuarios', verificarToken, verificarAdminRol, (req, res) => {
         }
         res.json({
             ok: true,
-            usuario: usuarioDB,
+            Usuario: usuarioDB,
             message: "Usuario creado exitosamente!"
         })
 
@@ -72,9 +72,10 @@ app.post('/usuarios', verificarToken, verificarAdminRol, (req, res) => {
 })
 
 //obtner usuario habilitados o inabilitados
-app.get('/usuarios/:tipo', verificarToken, verificarAdminRol, (req, res) => {
-    let habilitado = req.params.tipo
-    let consulta = 'SELECT * from funcionarios where Activo=?';
+app.get('/api/usuarios', verificarToken, verificarAdminRol, (req, res) => {
+
+    let habilitado = req.query.habilitados
+    let consulta = 'SELECT t1.*, t2.id_cuenta from funcionarios as t1 left join cuenta as t2 on t2.id_funcionario=t1.id_funcionario where t1.Activo=? ORDER BY Fecha_creacion DESC;';
     mysqlConection.query(consulta, habilitado, (err, usuariosDB, fields) => {
         if (err) {
             return res.status(400).json({
@@ -88,17 +89,15 @@ app.get('/usuarios/:tipo', verificarToken, verificarAdminRol, (req, res) => {
                 usuarios: []
             })
         }
-
         res.json({
             ok: true,
-            usuarios: usuariosDB,
-            message: "Se obtuvieron a los funcionarios"
+            usuarios: usuariosDB
         })
     })
 })
 
 //OBTENER 1 USUARIO 
-app.get('/usuarios/:id', (req, res) => {
+app.get('/usuarios/:id', verificarToken, verificarAdminRol, (req, res) => {
     const id = req.params.id
     let consulta = 'Select * from funcionarios where id_funcionario=?';
     mysqlConection.query(consulta, id, (err, usuarioDB, fields) => {
@@ -124,7 +123,7 @@ app.get('/usuarios/:id', (req, res) => {
 })
 
 //get multiple usuarios
-app.post('/usuarios-trabajando', (req, res) => {
+app.post('/usuarios-trabajando', verificarToken, verificarAdminRol, (req, res) => {
     const ids = req.body.ids
     let consulta = 'Select * from funcionarios where id_funcionario in (?)';
     mysqlConection.query(consulta, [ids], (err, usuariosDB, fields) => {
@@ -153,7 +152,7 @@ app.post('/usuarios-trabajando', (req, res) => {
 
 
 //ACTUALIZAR USUARIO 
-app.put('/usuarios/:id', (req, res) => {
+app.put('/api/usuario/:id', verificarToken, verificarAdminRol, (req, res) => {
     const id = req.params.id
     const body = req.body
     let consulta = 'Update funcionarios set ? where id_funcionario=?';
@@ -173,7 +172,7 @@ app.put('/usuarios/:id', (req, res) => {
 })
 
 //ELIMINAR USUARIO
-app.delete('/usuarios/:id', (req, res) => {
+app.delete('/api/usuarios/:id', (req, res) => {
     const id = req.params.id
     let consulta = 'DELETE from funcionarios where id_funcionario=?';
     mysqlConection.query(consulta, id, (err, usuarioDB, fields) => {
@@ -191,7 +190,7 @@ app.delete('/usuarios/:id', (req, res) => {
 })
 
 //AGREGAR DE DETALLES DE SU INICIO DE TRABAJO
-app.post('/usuarios-detalles', (req, res) => {
+app.post('/api/usuarios-detalles', verificarToken, verificarAdminRol, (req, res) => {
     let body = req.body
     let consulta = 'INSERT INTO detalles set ?';
     mysqlConection.query(consulta, body, (err, detalleDB, fields) => {
@@ -209,9 +208,9 @@ app.post('/usuarios-detalles', (req, res) => {
 })
 
 //OTNER EL REGISTRO DE TRABAJOS DEL FUNCIONARIO
-app.get('/usuarios-detalles/:id', (req, res) => {
+app.get('/api/usuarios-detalles/:id', (req, res) => {
     const id = req.params.id
-    let consulta = 'Select t1.detalle, t1.fecha, t2.Nombre as Nombre, t2.Apellido_P, t2.Apellido_M, t3.Nombre as NombreCar  from detalles as t1 join funcionarios as t2 on t2.id_funcionario=t1.id_funcionario join cargo as t3 on t3.id_cargo=t1.id_cargo where t1.id_funcionario=?';
+    let consulta = 'Select t1.detalle, t1.fecha, t3.Nombre as NombreCar from detalles as t1 join cargo as t3 on t3.id_cargo=t1.id_cargo where t1.id_funcionario=?';
     mysqlConection.query(consulta, id, (err, detallesDB, fields) => {
         if (err) {
             return res.status(400).json({

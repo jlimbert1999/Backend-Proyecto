@@ -3,7 +3,7 @@ const app = express()
 const mysqlConection = require('../../conexion/conexionBD');
 const jwt = require('jsonwebtoken');
 
-app.post('/requerimientos', (req, res) => {
+app.post('/api/requerimiento', (req, res) => {
     let body = req.body
     let consulta = 'INSERT INTO requerimientos set ?';
     mysqlConection.query(consulta, body, (err, requerimientoDB, fields) => {
@@ -22,7 +22,7 @@ app.post('/requerimientos', (req, res) => {
 })
 
 //get requerimietos de tramite habilitados
-app.get('/requerimientos_Habilitados/:id', (req, res) => {
+app.get('/api/requerimientos_Habilitados/:id', (req, res) => {
     let id = req.params.id
     let consulta = 'SELECT * from requerimientos where id_TipoTramite=? and Activo=true';
     mysqlConection.query(consulta, id, (err, requerimientosDB, fields) => {
@@ -46,7 +46,7 @@ app.get('/requerimientos_Habilitados/:id', (req, res) => {
         })
     })
 })
-app.get('/requerimientos_noHabilitados/:id', (req, res) => {
+app.get('/api/requerimientos_noHabilitados/:id', (req, res) => {
     let id = req.params.id
     let consulta = 'SELECT * from requerimientos where id_TipoTramite=? and Activo=false';
     mysqlConection.query(consulta, id, (err, requerimientosDB, fields) => {

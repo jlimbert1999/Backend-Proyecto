@@ -4,9 +4,10 @@ const mysqlConection = require('../../conexion/conexionBD');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const { JSON } = require('mysql/lib/protocol/constants/types');
+const { verificarToken, verificarAdminRol } = require('../../middleware/autorizacion')
 
 //AGREGAR CUENTA
-app.post('/cuentas', (req, res) => {
+app.post('/api/cuenta', verificarToken, verificarAdminRol, (req, res) => {
     const body = req.body
     body.password = bcrypt.hashSync(body.password, 10)
     let consulta = 'INSERT INTO cuenta set ?';
@@ -19,14 +20,13 @@ app.post('/cuentas', (req, res) => {
         }
         res.json({
             ok: true,
-            cuenta: cuentaDB,
-            message: "Funcionario y cuenta creada exitosamente!"
+            Cuenta: cuentaDB
         })
     })
 })
 
 //ACTUALIZAR LOGIN Y PASSWORD CUENTA
-app.put('/cuentas/:id', (req, res) => {
+app.put('/api/cuenta/:id', (req, res) => {
     let id = req.params.id
     const body = req.body
     if (body.password) {
@@ -42,7 +42,7 @@ app.put('/cuentas/:id', (req, res) => {
         }
         res.json({
             ok: true,
-            cuenta: cuentaDB,
+            Cuenta: cuentaDB,
             message: "Cuenta actualizada correctamente!"
         })
     })
@@ -50,14 +50,14 @@ app.put('/cuentas/:id', (req, res) => {
 
 
 //OBTNER TODOS LOS DATOS DE LAS CUENTAS CON FUNCIONARIOS ACTIVOS
-app.get('/cuentas-asignadas', (req, res) => {
+app.get('/api/cuentas-asignadas', (req, res) => {
     //cuenta = todo | t1
     //funcionario=Nombre, Apellido_P, Apellido_M , Dni| t2
     //trabaja = id_dependencia, id_insitucion | t3
     //institucion=Nombre | t4
     //dependencia=Nombre | t5
     //cargo=nombre | t6
-    let consulta = 'SELECT t1.id_cuenta, t1.login, t1.id_funcionario, t1.id_cargo,  t2.Nombre, t2.Apellido_P, t2.Apellido_M, t2.Dni, t4.Sigla as SiglaInst, t5.Nombre as NombreDep, t6.Nombre as NombreCar from cuenta as t1 join funcionarios as t2 on t1.id_funcionario=t2.id_funcionario join trabaja as t3 on t3.id_cuenta=t1.id_cuenta join institucion as t4 on t4.id_institucion=t3.id_institucion join dependencia as t5 on t5.id_dependencia=t3.id_dependencia join cargo as t6 on t6.id_cargo=t1.id_cargo where t1.id_funcionario is not null';
+    let consulta = 'SELECT t1.id_cuenta, t1.login, t1.id_funcionario, t1.id_cargo, t1.fecha_creacion, t1.fecha_actualizacion,  t2.Nombre, t2.Apellido_P, t2.Apellido_M, t2.Dni, t4.Sigla as SiglaInst, t5.Nombre as NombreDep, t6.Nombre as NombreCar from cuenta as t1 join funcionarios as t2 on t1.id_funcionario=t2.id_funcionario join trabaja as t3 on t3.id_cuenta=t1.id_cuenta join institucion as t4 on t4.id_institucion=t3.id_institucion join dependencia as t5 on t5.id_dependencia=t3.id_dependencia join cargo as t6 on t6.id_cargo=t1.id_cargo where t1.id_funcionario is not null';
     mysqlConection.query(consulta, (err, cuentasDB, fields) => {
         if (err) {
             return res.status(400).json({
@@ -79,8 +79,8 @@ app.get('/cuentas-asignadas', (req, res) => {
 })
 
 //OBTNER TODOS LOS DATOS DE LAS CUENTAS SIN UN FUNCIONARIO ASIGNADO
-app.get('/cuentas-no_asignadas', (req, res) => {
-    let consulta = 'SELECT t1.login, t1.id_cuenta, t1.id_cargo,  t3.Sigla as SiglaInst, t4.Nombre as NombreDep, t5.Nombre as NombreCar from cuenta as t1 join trabaja as t2 on t1.id_cuenta=t2.id_cuenta join institucion as t3 on t3.id_institucion=t2.id_institucion join dependencia as t4 on t4.id_dependencia=t2.id_dependencia join cargo as t5 on t5.id_cargo=t2.id_cargo  where t1.id_funcionario is null';
+app.get('/api/cuentas-no_asignadas', (req, res) => {
+    let consulta = 'SELECT t1.login, t1.id_cuenta, t1.id_cargo, t1.fecha_creacion, t1.fecha_actualizacion,  t3.Sigla as SiglaInst, t4.Nombre as NombreDep, t5.Nombre as NombreCar from cuenta as t1 join trabaja as t2 on t1.id_cuenta=t2.id_cuenta join institucion as t3 on t3.id_institucion=t2.id_institucion join dependencia as t4 on t4.id_dependencia=t2.id_dependencia join cargo as t5 on t5.id_cargo=t2.id_cargo where t1.id_funcionario is null';
     mysqlConection.query(consulta, (err, cuentasDB, fields) => {
         if (err) {
             return res.status(400).json({
@@ -101,29 +101,47 @@ app.get('/cuentas-no_asignadas', (req, res) => {
     })
 })
 
-//VERIFICAR SI FUNCIONARIO TIENE CUENTA
-app.get('/cuentas-verificar/:id', (req, res) => {
-    let id = req.params.id
-    let consulta = 'Select id_cuenta, fecha_creacion, fecha_actualizacion, login from cuenta where id_funcionario=?';
-    mysqlConection.query(consulta, id, (err, cuentaDB, fields) => {
+// //VERIFICAR SI FUNCIONARIO TIENE CUENTA
+// app.get('/cuentas-verificar/:id', (req, res) => {
+//     let id = req.params.id
+//     let consulta = 'Select id_cuenta, fecha_creacion, fecha_actualizacion, login from cuenta where id_funcionario=?';
+//     mysqlConection.query(consulta, id, (err, cuentaDB, fields) => {
+//         if (err) {
+//             return res.status(400).json({
+//                 ok: false,
+//                 err
+//             })
+//         }
+//         if (cuentaDB <= 0) {
+//             return res.json({
+//                 ok: true,
+//                 tiene: false,
+//                 message: "El funcionario no tiene cuenta"
+//             })
+//         }
+//         res.json({
+//             ok: true,
+//             tiene: true,
+//             Cuenta: cuentaDB,
+//             Propietario: id
+//         })
+//     })
+// })
+//getCuenta especifoca
+app.get('/cuenta/:id', (req, res) => {
+    const id_cuenta = req.params.id
+    let consulta = 'Select * from cuenta where id_cuenta=?';
+    mysqlConection.query(consulta, [id_cuenta], (err, cuentaDB, fields) => {
         if (err) {
             return res.status(400).json({
                 ok: false,
                 err
             })
         }
-        if (cuentaDB <= 0) {
-            return res.json({
-                ok: true,
-                tiene: false,
-                message: "El funcionario no tiene cuenta"
-            })
-        }
+        delete cuentaDB[0].password
         res.json({
             ok: true,
-            tiene: true,
-            Cuenta: cuentaDB,
-            Propietario: id
+            Cuenta: cuentaDB[0]
         })
     })
 })

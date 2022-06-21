@@ -22,9 +22,9 @@ app.post('/cargo', (req, res) => {
     })
 })
 
-app.get('/cargos/:tipo', (req, res) => {
-    let tipo = req.params.tipo
-    let consulta = 'SELECT * from cargo where Activo=?';
+app.get('/api/cargos', (req, res) => {
+    let tipo = req.query.tipo
+    let consulta = 'SELECT * from cargo where Activo=? ORDER BY Fecha_creacion DESC;';
     mysqlConection.query(consulta, tipo, (err, cargoDB, fields) => {
         if (err) {
             return res.status(400).json({
@@ -46,7 +46,7 @@ app.get('/cargos/:tipo', (req, res) => {
     })
 })
 
-app.put('/cargos/:id', (req, res) => {
+app.put('/api/cargo/:id', (req, res) => {
     const id = req.params.id
     const body = req.body
     let consulta = 'Update cargo set ? where id_cargo=?';

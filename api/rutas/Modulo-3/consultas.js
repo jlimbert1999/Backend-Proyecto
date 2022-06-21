@@ -18,6 +18,7 @@ app.get('/consulta-tramite', (req, res) => {
                 message: err
             })
         }
+        console.log(tramiteDb[0]);
         client.verify.services(configTwilio.serviceID).verifications.create({
             to: `+591${tramiteDb[0].telefono}`,
             channel: 'sms'

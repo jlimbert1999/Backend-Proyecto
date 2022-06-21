@@ -3,7 +3,7 @@ const app = express()
 const mysqlConection = require('../../conexion/conexionBD');
 const jwt = require('jsonwebtoken');
 
-app.post('/tipos_tramites', (req, res) => {
+app.post('/api/tipos_tramites', (req, res) => {
     let body = req.body
     let consulta = 'INSERT INTO tipos set ?';
     mysqlConection.query(consulta, body, (err, tipoTramiteDB, fields) => {
@@ -22,21 +22,14 @@ app.post('/tipos_tramites', (req, res) => {
 })
 
 //obtner tramites habilitados y no habilitados
-app.get('/tipos_tramites/:tipo', (req, res) => {
-    let tipo = req.params.tipo
-    let consulta = 'SELECT * from tipos where activo=?';
+app.get('/api/tipos_tramites', (req, res) => {
+    let tipo = req.query.tipo
+    let consulta = 'SELECT * from tipos where activo=? ORDER BY Fecha_creacion DESC;';
     mysqlConection.query(consulta, tipo, (err, tiposTramitesDB, fields) => {
         if (err) {
             return res.status(400).json({
                 ok: false,
                 err
-            })
-        }
-        if (tiposTramitesDB <= 0) {
-            return res.json({
-                ok: true,
-                TiposTramites: [],
-                message: 'No hay tipos de tramites registrados'
             })
         }
         res.json({
@@ -48,7 +41,7 @@ app.get('/tipos_tramites/:tipo', (req, res) => {
 })
 
 //Actualizar un tipo de tramite
-app.put('/tipos_tramites/:id', (req, res) => {
+app.put('/api/tipos_tramites/:id', (req, res) => {
     let body = req.body
     const id = req.params.id
     let consulta = 'Update tipos set ? where id_TipoTramite=?';
