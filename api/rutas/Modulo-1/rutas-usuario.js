@@ -9,7 +9,8 @@ const { verificarToken, verificarAdminRol } = require('../../middleware/autoriza
 //INICIO DE SESION
 app.post('/login', (req, res) => {
     let { login, password } = req.body
-    let consulta = 'select t1.password, t1.id_funcionario, t1.id_cuenta, t1.login, t2.Nombre as NombreCargo, t3.Nombre, t3.Apellido_P, t3.Apellido_M, t4.tipo, t5.Sigla from cuenta as t1 join cargo as t2 on t2.id_cargo=t1.id_cargo join funcionarios as t3 on t3.id_funcionario=t1.id_funcionario join permisos as t4 on t4.id_cuenta=t1.id_cuenta left join trabaja as tx on tx.id_cuenta=t1.id_cuenta left join institucion as t5 on t5.id_institucion=tx.id_institucion where t1.login=?'
+    let consulta = 'select t1.password, t1.id_funcionario, t1.id_cuenta, t1.login, t2.Nombre as NombreCargo, t3.Nombre, t3.Apellido_P, t3.Apellido_M, t1.permisos, t5.Sigla from cuenta as t1 join cargo as t2 on t2.id_cargo=t1.id_cargo join funcionarios as t3 on t3.id_funcionario=t1.id_funcionario left join trabaja as tx on tx.id_cuenta=t1.id_cuenta left join institucion as t5 on t5.id_institucion=tx.id_institucion where t1.login=? and t3.Activo is true'
+        // let consulta = 'select t1.password, t1.id_funcionario, t1.id_cuenta, t1.login, t2.Nombre as NombreCargo, t3.Nombre, t3.Apellido_P, t3.Apellido_M, t4.tipo, t5.Sigla from cuenta as t1 join cargo as t2 on t2.id_cargo=t1.id_cargo join funcionarios as t3 on t3.id_funcionario=t1.id_funcionario join permisos as t4 on t4.id_cuenta=t1.id_cuenta left join trabaja as tx on tx.id_cuenta=t1.id_cuenta left join institucion as t5 on t5.id_institucion=tx.id_institucion where t1.login=?'
     mysqlConection.query(consulta, login, (err, usuarioDB, fields) => {
         if (err) {
             return res.status(400).json({
@@ -36,7 +37,7 @@ app.post('/login', (req, res) => {
             Nombre: `${usuarioDB[0].Nombre} ${usuarioDB[0].Apellido_P} ${usuarioDB[0].Apellido_M}`,
             NombreLogin: usuarioDB[0].login,
             NombreCargo: usuarioDB[0].NombreCargo,
-            Tipo: usuarioDB[0].tipo,
+            Tipo: usuarioDB[0].permisos,
             Sigla: usuarioDB[0].Sigla
         }
         let token = jwt.sign(DatosCuenta, 'still')

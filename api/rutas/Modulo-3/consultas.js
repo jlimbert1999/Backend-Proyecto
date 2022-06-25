@@ -18,16 +18,23 @@ app.get('/consulta-tramite', (req, res) => {
                 message: err
             })
         }
-        console.log(tramiteDb[0]);
+        // console.log(tramiteDb.length);
         client.verify.services(configTwilio.serviceID).verifications.create({
             to: `+591${tramiteDb[0].telefono}`,
             channel: 'sms'
 
         }).then((data) => {
+            console.log(data);
             res.json({
                 ok: true,
                 Consulta: tramiteDb[0],
                 message: "Se envio el codigo de verificacion"
+            })
+
+        }).catch((err) => {
+            res.json({
+                ok: false,
+                message: "Numero invalido"
             })
 
         })
