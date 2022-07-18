@@ -40,7 +40,7 @@ app.post('/login', (req, res) => {
             Tipo: usuarioDB[0].permisos,
             Sigla: usuarioDB[0].Sigla
         }
-        let token = jwt.sign(DatosCuenta, 'still')
+        let token = jwt.sign(DatosCuenta, 'still', { expiresIn: '8h' })
         res.json({
             ok: true,
             usuario: DatosCuenta,

@@ -3,8 +3,9 @@ const app = express()
 const mysqlConection = require('../../conexion/conexionBD');
 const jwt = require('jsonwebtoken');
 const { json } = require('express');
+const { verificarToken, verificarAdminRol } = require('../../middleware/autorizacion')
 
-app.post('/registrar-tramite', (req, res) => {
+app.post('/registrar-tramite', verificarToken, verificarAdminRol, (req, res) => {
     let body = req.body
     let consulta = 'INSERT INTO tramites set ?';
     mysqlConection.query(consulta, body, (err, TramiteDB, fields) => {
@@ -22,7 +23,7 @@ app.post('/registrar-tramite', (req, res) => {
     })
 })
 
-app.get('/registrar-tramite', (req, res) => {
+app.get('/registrar-tramite', verificarToken, (req, res) => {
     let consulta = 'SELECT * from tramites';
     mysqlConection.query(consulta, (err, TramiteDB, fields) => {
         if (err) {

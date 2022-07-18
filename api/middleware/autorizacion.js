@@ -5,7 +5,7 @@ let verificarToken = (req, res, next) => {
     let token = req.get('token');
     jwt.verify(token, 'still', (err, decoded) => {
         if (err) {
-            return res.status(400).json({
+            return res.status(401).json({
                 ok: false,
                 err: {
                     message: "el token no es valido"
@@ -21,7 +21,7 @@ let verificarAdminRol = (req, res, next) => {
     if (usuario.Tipo == "ADMIN_ROLE") {
         next()
     } else {
-        res.status(400).json({
+        res.status(401).json({
             of: false,
             err: {
                 message: "el user no es admin"

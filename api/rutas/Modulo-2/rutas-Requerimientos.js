@@ -2,8 +2,9 @@ const express = require('express');
 const app = express()
 const mysqlConection = require('../../conexion/conexionBD');
 const jwt = require('jsonwebtoken');
+const { verificarToken, verificarAdminRol } = require('../../middleware/autorizacion')
 
-app.post('/api/requerimiento', (req, res) => {
+app.post('/api/requerimiento', verificarToken, (req, res) => {
     let body = req.body
     let consulta = 'INSERT INTO requerimientos set ?';
     mysqlConection.query(consulta, body, (err, requerimientoDB, fields) => {
@@ -22,7 +23,7 @@ app.post('/api/requerimiento', (req, res) => {
 })
 
 //get requerimietos de tramite habilitados
-app.get('/api/requerimientos_Habilitados/:id', (req, res) => {
+app.get('/api/requerimientos_Habilitados/:id', verificarToken, (req, res) => {
     let id = req.params.id
     let consulta = 'SELECT * from requerimientos where id_TipoTramite=? and Activo=true';
     mysqlConection.query(consulta, id, (err, requerimientosDB, fields) => {
@@ -46,7 +47,7 @@ app.get('/api/requerimientos_Habilitados/:id', (req, res) => {
         })
     })
 })
-app.get('/api/requerimientos_noHabilitados/:id', (req, res) => {
+app.get('/api/requerimientos_noHabilitados/:id', verificarToken, (req, res) => {
     let id = req.params.id
     let consulta = 'SELECT * from requerimientos where id_TipoTramite=? and Activo=false';
     mysqlConection.query(consulta, id, (err, requerimientosDB, fields) => {
@@ -71,7 +72,7 @@ app.get('/api/requerimientos_noHabilitados/:id', (req, res) => {
     })
 })
 
-app.put('/requerimientos/:id', (req, res) => {
+app.put('/requerimientos/:id', verificarToken, (req, res) => {
     let body = req.body
     const id = req.params.id
     let consulta = 'Update requerimientos set ? where id_requerimiento=?';
@@ -90,26 +91,8 @@ app.put('/requerimientos/:id', (req, res) => {
     })
 })
 
-//elimiar
-// app.put('/eliminar-requerimientos/:id', (req, res) => {
-//     const id = req.params.id
-//     let consulta = 'Update requerimientos set Activo=false where id_requerimiento=?';
-//     mysqlConection.query(consulta, [body, id], (err, requerimientoDB, fields) => {
-//         if (err) {
-//             return res.status(400).json({
-//                 ok: false,
-//                 err
-//             })
-//         }
-//         res.json({
-//             ok: true,
-//             Requerimiento: requerimientoDB,
-//             message: "El requerimiento fue eliminado"
-//         })
-//     })
-// })
 
-app.delete('/requerimientos/:id', (req, res) => {
+app.delete('/requerimientos/:id', verificarToken, (req, res) => {
     const id = req.params.id
     let consulta = 'Delete from requerimientos where id_requerimiento=?';
     mysqlConection.query(consulta, id, (err, requerimientoDB, fields) => {

@@ -2,8 +2,9 @@ const express = require('express');
 const app = express()
 const mysqlConection = require('../../conexion/conexionBD');
 const jwt = require('jsonwebtoken');
+const { verificarToken, verificarAdminRol } = require('../../middleware/autorizacion')
 
-app.post('/api/tipos_tramites', (req, res) => {
+app.post('/api/tipos_tramites', verificarToken, (req, res) => {
     let body = req.body
     let consulta = 'INSERT INTO tipos set ?';
     mysqlConection.query(consulta, body, (err, tipoTramiteDB, fields) => {
@@ -22,7 +23,7 @@ app.post('/api/tipos_tramites', (req, res) => {
 })
 
 //obtner tramites habilitados y no habilitados
-app.get('/api/tipos_tramites', (req, res) => {
+app.get('/api/tipos_tramites', verificarToken, (req, res) => {
     let tipo = req.query.tipo
     let consulta = 'SELECT * from tipos where activo=? ORDER BY Fecha_creacion DESC;';
     mysqlConection.query(consulta, tipo, (err, tiposTramitesDB, fields) => {
@@ -41,7 +42,7 @@ app.get('/api/tipos_tramites', (req, res) => {
 })
 
 //Actualizar un tipo de tramite
-app.put('/api/tipos_tramites/:id', (req, res) => {
+app.put('/api/tipos_tramites/:id', verificarToken, (req, res) => {
     let body = req.body
     const id = req.params.id
     let consulta = 'Update tipos set ? where id_TipoTramite=?';
@@ -61,7 +62,7 @@ app.put('/api/tipos_tramites/:id', (req, res) => {
 })
 
 //Eliminar un tipo de tramite
-app.put('/eliminar_tipo_tramite/:id', (req, res) => {
+app.put('/eliminar_tipo_tramite/:id', verificarToken, (req, res) => {
     const id = req.params.id
     let consulta = 'Update tipos set Activo=false where id_TipoTramite=?';
     mysqlConection.query(consulta, id, (err, tipoTramiteDB, fields) => {

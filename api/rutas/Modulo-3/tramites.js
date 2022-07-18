@@ -1,9 +1,10 @@
 const express = require('express');
 const app = express()
 const mysqlConection = require('../../conexion/conexionBD');
+const { verificarToken } = require('../../middleware/autorizacion')
 
 //TRAMIE
-app.post('/tramite', (req, res) => {
+app.post('/tramite', verificarToken, (req, res) => {
     const body = req.body
     let consulta = 'INSERT INTO tramite set ?';
     mysqlConection.query(consulta, body, (err, tramiteDb, fields) => {
@@ -24,9 +25,9 @@ app.post('/tramite', (req, res) => {
 
 
 //obtener info tramite registrados por una cuenta
-app.get('/api/tramites/:id', (req, res) => {
+app.get('/api/tramites/:id', verificarToken, (req, res) => {
     let id = req.params.id
-    let consulta = 'Select DISTINCT t1.*, t3.nombres, t3.paterno, t3.materno, t3.dni, t3.expedido, t2.id_solicitud, t2.id_solicitante, t2.id_representante, t4.titulo, IF(t5.id_tramite is null, true, false) from tramite as t1 join solicitud as t2 on t2.id_tramite=t1.id_tramite join solicitante as t3 on t3.id_solicitante=t2.id_solicitante join tipos as t4 on t4.id_TipoTramite=t1.id_TipoTramite left join bandeja_salida as t5 on t5.id_tramite=t1.id_tramite where t1.id_cuenta=? ORDER BY Fecha_creacion DESC;';
+    let consulta = 'Select DISTINCT t1.*, t3.nombres, t3.paterno, t3.materno, t3.dni, t3.expedido, t2.id_solicitud, t2.id_solicitante, t2.id_representante, t4.titulo, IF(t5.id_tramite is null, true, false) as enviado from tramite as t1 join solicitud as t2 on t2.id_tramite=t1.id_tramite join solicitante as t3 on t3.id_solicitante=t2.id_solicitante join tipos as t4 on t4.id_TipoTramite=t1.id_TipoTramite left join bandeja_salida as t5 on t5.id_tramite=t1.id_tramite where t1.id_cuenta=? ORDER BY Fecha_creacion DESC;';
     // let consulta = 'Select t1.*, t2.id_solicitud, t3.*, t4.titulo, t5.enviado from tramite as t1 join solicitud as t2 on t2.id_tramite=t1.id_tramite join solicitante as t3 on t3.id_solicitante=t2.id_solicitante join tipos as t4 on t4.id_TipoTramite=t1.id_TipoTramite left join workflow as t5 on t5.id_tramite=t1.id_tramite where t1.id_cuenta=? and t5.enviado is NULL';
     mysqlConection.query(consulta, id, (err, tramitesDb, fields) => {
         if (err) {
@@ -43,7 +44,7 @@ app.get('/api/tramites/:id', (req, res) => {
     })
 })
 
-app.put('/tramite/:id', (req, res) => {
+app.put('/tramite/:id', verificarToken, (req, res) => {
     const id = req.params.id
     let body = req.body
     let consulta = 'Update tramite set ? where id_tramite=?';
@@ -64,7 +65,7 @@ app.put('/tramite/:id', (req, res) => {
 })
 
 //SOLICITANTE
-app.post('/solicitante', (req, res) => {
+app.post('/solicitante', verificarToken, (req, res) => {
     const body = req.body
     let consulta = 'INSERT INTO solicitante set ?';
     mysqlConection.query(consulta, body, (err, solicitanteDb, fields) => {
@@ -85,7 +86,7 @@ app.post('/solicitante', (req, res) => {
 
 
 //traer la info de un solicitante
-app.get('/solicitante/:id', (req, res) => {
+app.get('/solicitante/:id', verificarToken, (req, res) => {
     let id = req.params.id
     let consulta = 'Select t1.* from solicitante as t1 join solicitud as t2 on t2.id_solicitante=t1.id_solicitante where t2.id_tramite=?';
     mysqlConection.query(consulta, id, (err, solicitanteDb, fields) => {
@@ -103,7 +104,7 @@ app.get('/solicitante/:id', (req, res) => {
     })
 })
 
-app.put('/solicitante/:id', (req, res) => {
+app.put('/solicitante/:id', verificarToken, (req, res) => {
     const id = req.params.id
     let body = req.body
     let consulta = 'Update solicitante set ? where id_solicitante= ?';
@@ -125,7 +126,7 @@ app.put('/solicitante/:id', (req, res) => {
 
 
 //REPRESENTANTE
-app.post('/representante', (req, res) => {
+app.post('/representante', verificarToken, (req, res) => {
     const body = req.body
     let consulta = 'INSERT INTO representante set ?';
     mysqlConection.query(consulta, body, (err, represenDb, fields) => {
@@ -145,7 +146,7 @@ app.post('/representante', (req, res) => {
 })
 
 //traer la info de un representante
-app.get('/representante/:id', (req, res) => {
+app.get('/representante/:id', verificarToken, (req, res) => {
     let id = req.params.id
     let consulta = 'Select t1.* from representante as t1 join solicitud as t2 on t2.id_representante=t1.id_representante where t2.id_tramite=?';
     mysqlConection.query(consulta, id, (err, representanteDb, fields) => {
@@ -162,7 +163,7 @@ app.get('/representante/:id', (req, res) => {
 
     })
 })
-app.put('/representante/:id', (req, res) => {
+app.put('/representante/:id', verificarToken, (req, res) => {
     const id = req.params.id
     let body = req.body
     let consulta = 'Update representante set ? where id_representante=?';
@@ -185,7 +186,7 @@ app.put('/representante/:id', (req, res) => {
 
 //SOLICITTU= TABLA QUE VINCULA AL TRAMITE CON EL SOLICITANTE
 
-app.post('/solicitud', (req, res) => {
+app.post('/solicitud', verificarToken, (req, res) => {
         const body = req.body
         let consulta = 'INSERT INTO solicitud set ?';
         mysqlConection.query(consulta, body, (err, solicitudDb, fields) => {
@@ -204,7 +205,7 @@ app.post('/solicitud', (req, res) => {
         })
     })
     //actualizar la solicitud agregando un representante
-app.put('/solicitud/:id', (req, res) => {
+app.put('/solicitud/:id', verificarToken, (req, res) => {
     const id = req.params.id
     let body = req.body
         // console.log(this.body, this.id);
@@ -226,7 +227,7 @@ app.put('/solicitud/:id', (req, res) => {
 })
 
 
-app.post('/workflow', (req, res) => {
+app.post('/workflow', verificarToken, (req, res) => {
     let body = req.body
     let consulta = 'INSERT INTO workflow set ?';
     mysqlConection.query(consulta, body, (err, workflowDb, fields) => {
@@ -247,9 +248,9 @@ app.post('/workflow', (req, res) => {
 
 
 // OBTENCION DE DATOS PARA LA FICHA
-app.get('/ficha-tramite/:id', (req, res) => {
+app.get('/ficha-tramite/:id', verificarToken, (req, res) => {
     let id = req.params.id
-    let consulta = 'Select * from tramite where id_tramite=?';
+    let consulta = 'Select t1.*, t2.titulo from tramite as t1 join tipos as t2 on t2.id_TipoTramite=t1.id_TipoTramite where t1.id_tramite=? ';
     mysqlConection.query(consulta, id, (err, tramiteDb, fields) => {
         if (err) {
             return res.status(400).json({
@@ -263,7 +264,7 @@ app.get('/ficha-tramite/:id', (req, res) => {
         })
     })
 })
-app.get('/ficha-solicitante/:id', (req, res) => {
+app.get('/ficha-solicitante/:id', verificarToken, (req, res) => {
     let id = req.params.id
     let consulta = 'Select t1.* from solicitante as t1 join solicitud as t2 on t2.id_solicitante=t1.id_solicitante where t2.id_tramite=?';
     mysqlConection.query(consulta, id, (err, solicitanteDb, fields) => {
@@ -279,7 +280,7 @@ app.get('/ficha-solicitante/:id', (req, res) => {
         })
     })
 })
-app.get('/ficha-representante/:id', (req, res) => {
+app.get('/ficha-representante/:id', verificarToken, (req, res) => {
     let id = req.params.id
     let consulta = 'Select t1.* from representante as t1 join solicitud as t2 on t2.id_representante=t1.id_representante where t2.id_tramite=?';
     mysqlConection.query(consulta, id, (err, representanteDb, fields) => {
@@ -295,7 +296,7 @@ app.get('/ficha-representante/:id', (req, res) => {
         })
     })
 })
-app.get('/ficha-requisitos_presentados/:id', (req, res) => {
+app.get('/ficha-requisitos_presentados/:id', verificarToken, (req, res) => {
     let id = req.params.id
     let consulta = 'Select presento from solicitud where id_tramite=?';
     let consulta2 = `Select detalle from requerimientos where id_requerimiento in (?)`;
@@ -326,10 +327,27 @@ app.get('/ficha-requisitos_presentados/:id', (req, res) => {
     })
 })
 
+app.get('/mail-emisor/:id', verificarToken, (req, res) => {
+    let id_tramite = req.params.id
+    let consulta = 'Select t1.id_cuentaEmisor, t1.detalle as Mensaje, t1.fecha_envio as Fecha_Envio, t1.aceptado as Recibido, CONCAT(t2.Nombre, " ", t2.Apellido_P, " ", t2.Apellido_M) AS Nombre, t2.id_funcionario, t3.Nombre as NombreCargo from bandeja_entrada as t1 join cuenta as tc on tc.id_cuenta=t1.id_cuentaEmisor join funcionarios as t2 on t2.id_funcionario=tc.id_funcionario join trabaja as tb on tb.id_cuenta=t1.id_cuentaEmisor join cargo as t3 on t3.id_cargo=tb.id_cargo where t1.id_tramite=?';
+    mysqlConection.query(consulta, id_tramite, (err, mailDb, fields) => {
+        if (err) {
+            return res.status(400).json({
+                ok: false,
+                message: err
+            })
+        }
+        res.json({
+            ok: true,
+            Mail: mailDb[0]
+        })
+    })
+})
 
 
 
-app.get('/detalles-funcionario/:id', (req, res) => {
+
+app.get('/detalles-funcionario/:id', verificarToken, (req, res) => {
     let id = req.params.id
     let consulta = 'Select t1.id_cuenta, t2.Nombre, t2.Apellido_P, t2.Apellido_M, t3.Nombre as NombreCar, t4.Nombre as NombreInst, t4.Sigla, t5.Nombre as NombreDep from cuenta as t1 join funcionarios as t2 on t2.id_funcionario=t1.id_funcionario join cargo as t3 on t3.id_cargo=t1.id_cargo join trabaja as tx on tx.id_cuenta=t1.id_cuenta join institucion as t4 on t4.id_institucion=tx.id_institucion join dependencia as t5 on tx.id_dependencia=t5.id_dependencia where t1.id_cuenta=?';
     mysqlConection.query(consulta, id, (err, funcionarioDb, fields) => {
@@ -348,7 +366,27 @@ app.get('/detalles-funcionario/:id', (req, res) => {
     })
 })
 
-app.post('/observacion', (req, res) => {
+//Get info user de workflow
+app.get('/detalles-funcionario-workflow/:id', verificarToken, (req, res) => {
+    let id = req.params.id
+    let consulta = 'Select t1.id_cuenta, t3.Nombre as NombreCar, t4.Nombre as NombreInst, t4.Sigla, t5.Nombre as NombreDep from cuenta as t1 join cargo as t3 on t3.id_cargo=t1.id_cargo join trabaja as tx on tx.id_cuenta=t1.id_cuenta join institucion as t4 on t4.id_institucion=tx.id_institucion join dependencia as t5 on tx.id_dependencia=t5.id_dependencia where t1.id_cuenta=?';
+    mysqlConection.query(consulta, id, (err, funcionarioDb, fields) => {
+        if (err) {
+            return res.status(400).json({
+                ok: false,
+                message: err
+            })
+        }
+        res.json({
+            ok: true,
+            Funcionario: funcionarioDb[0],
+            message: "Se obtuvo el funcionario"
+        })
+
+    })
+})
+
+app.post('/observacion', verificarToken, (req, res) => {
     const body = req.body
     let consulta = 'INSERT INTO observacion set ?';
     mysqlConection.query(consulta, body, (err, observacionDb, fields) => {
@@ -367,7 +405,7 @@ app.post('/observacion', (req, res) => {
     })
 })
 
-app.get('/observaciones/:id', (req, res) => {
+app.get('/observaciones/:id', verificarToken, (req, res) => {
     let id = req.params.id
     let consulta = 'select t1.*, t3.Nombre, t3.Apellido_P, t3.Apellido_M, t4.Nombre as NombreCar, t6.Nombre as NombreDep from observacion as t1 join cuenta as t2 on t2.id_cuenta=t1.id_cuenta join funcionarios as t3 on t3.id_funcionario=t2.id_funcionario join cargo as t4 on t4.id_cargo=t2.id_cargo join trabaja as t5 on t5.id_cuenta=t2.id_cuenta join dependencia as t6 on t6.id_dependencia=t5.id_dependencia where t1.id_tramite=?';
     mysqlConection.query(consulta, id, (err, observacionDb, fields) => {
@@ -385,7 +423,7 @@ app.get('/observaciones/:id', (req, res) => {
 
     })
 })
-app.put('/observacion/:id', (req, res) => {
+app.put('/observacion/:id', verificarToken, (req, res) => {
     const id = req.params.id
     let body = req.body
     let consulta = 'Update observacion set ? where id_observacion=?';
@@ -403,7 +441,7 @@ app.put('/observacion/:id', (req, res) => {
 
     })
 })
-app.get('/observacion-usuario/:id', (req, res) => {
+app.get('/observacion-usuario/:id', verificarToken, (req, res) => {
     const id = req.params.id
     let consulta = 'Select * from observacion where id_cuenta=?';
     mysqlConection.query(consulta, id, (err, observacionDb, fields) => {
@@ -421,7 +459,7 @@ app.get('/observacion-usuario/:id', (req, res) => {
     })
 })
 
-app.get('/detalles-envio/:id', (req, res) => {
+app.get('/detalles-envio/:id', verificarToken, (req, res) => {
 
     let id = req.params.id
     let consulta = 'select * from workflow where id_tramite=?';
@@ -440,7 +478,7 @@ app.get('/detalles-envio/:id', (req, res) => {
 
     })
 })
-app.get('/requisitos-presentados/:id', (req, res) => {
+app.get('/requisitos-presentados/:id', verificarToken, (req, res) => {
     let id = req.params.id
     let consulta = 'Select t2.detalle from tramite as t1 join requerimientos as t2 on t2.id_TipoTramite=t1.id_TipoTramite where t1.id_tramite=?';
     mysqlConection.query(consulta, id, (err, requisitosDb, fields) => {
@@ -460,7 +498,7 @@ app.get('/requisitos-presentados/:id', (req, res) => {
 })
 
 //aceptar tramite
-app.put('/workflow/:id', (req, res) => {
+app.put('/workflow/:id', verificarToken, (req, res) => {
         const id = req.params.id
         const body = req.body
         let consulta = 'Update workflow set ? where id_tramite=?';
@@ -479,7 +517,7 @@ app.put('/workflow/:id', (req, res) => {
         })
     })
     //aceptar tramite
-app.put('/workflow-aceptarTramite/:id', (req, res) => {
+app.put('/workflow-aceptarTramite/:id', verificarToken, (req, res) => {
     const id = req.params.id
     const body = {
         recibido: req.body.recibido,
@@ -504,7 +542,7 @@ app.put('/workflow-aceptarTramite/:id', (req, res) => {
 })
 
 //metodo para obtener funcionarios de una insitucion y area especifos para el envio de tramite
-app.get('/api/funcionarios_especificos', (req, res) => {
+app.get('/api/funcionarios_especificos', verificarToken, (req, res) => {
     let id_institucion = req.query.insti
     let id_dependencia = req.query.dep
     let consulta = 'Select t1.Nombre,t1.Apellido_P, t1.Apellido_M, t2.id_cuenta, t4.Nombre as NombreCar from trabaja as t3 join cuenta as t2 on t2.id_cuenta=t3.id_cuenta join funcionarios as t1 on t1.id_funcionario=t2.id_funcionario join cargo as t4 on t4.id_cargo=t2.id_cargo where id_institucion=? and id_dependencia=?';
@@ -523,7 +561,7 @@ app.get('/api/funcionarios_especificos', (req, res) => {
 })
 
 //metodo para obtener requisitos presentados
-app.get('/requisitos_presentados/:id', (req, res) => {
+app.get('/requisitos_presentados/:id', verificarToken, (req, res) => {
     let id = req.params.id
     let consulta = 'select presento from solicitud where id_tramite=?';
     mysqlConection.query(consulta, id, (err, requisitosDB, fields) => {
@@ -543,69 +581,4 @@ app.get('/requisitos_presentados/:id', (req, res) => {
 
 
 
-// app.get('/ficha-tramite/:id', (req, res) => {
-//     let id = req.params.id
-//     let consulta = 'Select t1.*, t2.id_solicitud,t3.nombres, t3.paterno, t3.materno, t4.titulo from tramite as t1 join solicitud as t2 on t2.id_tramite=t1.id_tramite join solicitante as t3 on t3.id_solicitante=t2.id_solicitante join tipos as t4 on t4.id_TipoTramite=t1.id_TipoTramite where t1.id_cuenta=?';
-//     mysqlConection.query(consulta, id, (err, tramitesDb, fields) => {
-//         if (err) {
-//             return res.status(400).json({
-//                 ok: false,
-//                 message: err
-//             })
-//         }
-//         res.json({
-//             ok: true,
-//             Tramites: tramitesDb
-//         })
-
-//     })
-// })
-
-
 module.exports = app
-
-// METODOS ANTIGUOS PARA BANDEJA 
-//metodo para conseguir algunos detalles del tramite y mostrarlos en las bandejas como lista
-// app.get('/bandeja-recibida/:id', (req, res) => {
-//     let id = req.params.id
-//     let consulta = 'Select t1.id_tramite, t1.detalle, t1.fecha_envio, t1.enviado, t1.recibido, t1.id_cuentaEmisor, t2.alterno, t3.titulo, t4.Nombre, t4.Apellido_P, t4.Apellido_M, t6.Nombre as NombreCargo from workflow as t1 join tramite as t2 on t2.id_tramite=t1.id_tramite join tipos as t3 on t3.id_TipoTramite=t2.id_TipoTramite join cuenta as t5 on t5.id_cuenta=t1.id_cuentaEmisor join  cargo as t6 on t6.id_cargo=t5.id_cargo join funcionarios as t4 on t4.id_funcionario=t5.id_funcionario where t1.id_cuentaReceptor=? AND t1.id_tramite not in (Select id_tramite from workflow where id_cuentaEmisor=?)';
-//     mysqlConection.query(consulta, [id, id], (err, tramitesDb, fields) => {
-//         if (err) {
-//             return res.status(400).json({
-//                 ok: false,
-//                 message: err
-//             })
-//         }
-//         if (tramitesDb.length == 0) {
-//             return res.json({
-//                 ok: true,
-//                 Tramites_Recibidos: [],
-//                 message: 'Esta cuenta no tiene tramites recibidos'
-//             })
-
-//         }
-//         res.json({
-//             ok: true,
-//             Tramites_Recibidos: tramitesDb,
-//         })
-
-//     })
-// })
-
-// app.get('/bandeja-emitida/:id', (req, res) => {
-//     let id = req.params.id
-//     let consulta = 'Select t1.*, t2.alterno, t2.cantidad, t3.titulo, t5.Nombre, t5.Apellido_P, t5.Apellido_M, t6.Nombre as NombreCargo from workflow as t1 join tramite as t2 on t2.id_tramite=t1.id_tramite join tipos as t3 on t3.id_TipoTramite=t2.id_TipoTramite join cuenta as t4 on t4.id_cuenta=t1.id_cuentaReceptor join funcionarios as t5 on t5.id_funcionario=t4.id_funcionario join cargo as t6 on t6.id_cargo=t4.id_cargo where t1.id_cuentaEmisor=?';
-//     mysqlConection.query(consulta, id, (err, tramiteDb, fields) => {
-//         if (err) {
-//             return res.status(400).json({
-//                 ok: false,
-//                 message: err
-//             })
-//         }
-//         res.json({
-//             ok: true,
-//             Tramites: tramiteDb
-//         })
-
-//     })
-// })
